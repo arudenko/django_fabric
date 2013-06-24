@@ -1,0 +1,5 @@
+django
+pillow
+fabric
+#MySQL-python
+fabtools
