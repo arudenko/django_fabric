@@ -1,0 +1,16 @@
+<uwsgi>
+    <socket>127.0.0.1:6969</socket>
+    <pythonpath>%(python_path)s</pythonpath>
+
+    <chdir>/var/www/apps/%(django_project_dir)s/current/</chdir>
+
+    <module>wsgi</module>
+    <plugins>python</plugins>
+    <processes>1</processes>
+    <daemonize/>
+    <enable-threads/>
+    <master/>
+    <harakiri>120</harakiri>
+    <max-requests>5000</max-requests>
+    <disable-logging>false</disable-logging>
+</uwsgi>

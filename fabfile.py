@@ -12,7 +12,7 @@ from fabtools.vagrant import vagrant
 from fabric.contrib.files import upload_template, exists
 
 # root
-env.root = env.root = os.path.abspath(os.path.dirname(__file__) + "/../../") + "/"
+env.root = env.root = os.path.abspath(os.path.dirname(__file__)) + "/"
 
 print env.root
 
@@ -45,6 +45,7 @@ env.db_name = "django_db"
 env.db_user = "dbuser"
 env.db_password = "somerandomstring"
 env.db_root_password = 's3cr3t_androotpassword'
+
 
 @task
 def staging():
@@ -140,6 +141,7 @@ def configure_uwsgi(conf_file):
     #require('settings', provided_by=[production, staging, local])
     context = {
         'django_project_dir': env.django_project_dir,
+        'project_name': env.project_name,
         'python_path': env.env_path + "/lib/python2.7/site-packages",
     }
 
@@ -189,6 +191,7 @@ def copy_to_releases():
 
 def install_requirements():
     """ Install pip requirements.txt """
+    # TODO This is not working
     with virtualenv():
         sudo('pip install -r {pip_req_file:s}'.format(env))
 
@@ -217,7 +220,7 @@ def mysql_execute(sql, user='', password=''):
 
 @task
 def reset_db():
-
+    # TODO Add backup
     with settings(mysql_user='root', mysql_password=env.db_root_password):
         if fabtools.mysql.database_exists(env.db_name):
             mysql_execute('DROP DATABASE %s;' % env.db_name, "root", env.db_root_password)
@@ -267,6 +270,7 @@ def setup():
         pass
 
 
+    # TODO Do we need this simple webserver?
     CONFIG_TPL = '''
     server {
         listen      %(port)d;
