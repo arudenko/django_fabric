@@ -1,5 +1,4 @@
 django
-pillow
 fabric
-#MySQL-python
+MySQL-python
 fabtools

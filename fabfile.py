@@ -1,4 +1,5 @@
 from contextlib import contextmanager
+from datetime import datetime
 import fnmatch
 import os
 import time
@@ -75,8 +76,9 @@ def upload_local_folder():
 
 def configure_app():
     context = {
-        'server_name': env.project_name,
-        'curr_path': env.curr_path,
+        'db_name': env.db_name,
+        'db_user': env.db_user,
+        'db_password': env.db_password,
     }
 
     upload_template("etc/local_settings.py.in",
@@ -236,6 +238,23 @@ def mysql_create_db():
     with settings(mysql_user='root', mysql_password=env.db_root_password):
         require.mysql.user(env.db_user, env.db_password)
         require.mysql.database(env.db_name, owner=env.db_user)
+
+def mysql_dump():
+    """ Runs mysqldump. Result is stored at /srv/active/sql/ """
+
+    dump_dir = '/srv/active/sql/'
+    fabric.api.run('mkdir -p %s' % dump_dir)
+    now = datetime.now().strftime("%Y.%m.%d-%H.%M")
+
+
+    with settings(mysql_user='root', mysql_password=env.db_root_password):
+        if fabtools.mysql.database_exists(env.db_name):
+            mysql_execute('DROP DATABASE %s;' % env.db_name, "root", env.db_root_password)
+
+
+    fabric.api.run('mysqldump -u%s -p %s > %s' % (user, database,
+                                                  os.path.join(dump_dir, '%s-%s.sql' % (database, now))))
+
 
 
 @task
