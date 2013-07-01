@@ -1,4 +1,4 @@
-django_fabric
+Django Fabric (Ubuntu)
 ============
 1. Just wanted to create simple [Fabric](http://docs.fabfile.org/en/1.6/) configuration to:
 	- Install:
@@ -21,6 +21,10 @@ django_fabric
 	Project has simple [Vagrant](http://www.vagrantup.com) file to test local instances. To spead up development it maps host folders to cache apt and virtualenv files. 
 
 4. To run
-	1. Access Test Data:
+	1. `vagrant up && fab vagrant setup`
+	2. open `http://88.88.88.88/admin/` in your browser
+	3. Access Admin Data:
 	    - login: root
 	    - password: 123
+
+Enjoy 
