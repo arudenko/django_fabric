@@ -74,6 +74,7 @@ def upload_local_folder():
     put(env.root + "requirements.txt", env.repo_path, use_sudo=True)
     require.directory('%(repo_path)s/static' % env, owner="www-data", use_sudo=True)
 
+
 def configure_app():
     context = {
         'db_name': env.db_name,
@@ -97,7 +98,6 @@ def symlink_release():
           curr_tmp,
           curr_tmp,
           '%(curr_path)s' % env))
-
 
 
 def get_sorted_releases():
@@ -190,12 +190,11 @@ def copy_to_releases():
     sudo('rm -rf %(rel_path)s/%(utc_ts_str)s/.git*' % env)
 
 
-def install_requirements():
-    """ Install pip requirements.txt """
-    # TODO This is not working
-    with virtualenv():
-        sudo('pip install -r {pip_req_file:s}'.format(env))
-
+def virualenv_update_requirements():
+    with fabtools.python.virtualenv('%(env_path)s' % env):
+        require.python.package('distribute')
+        fabtools.require.python.requirements('%(pip_req_file)s' % env, use_sudo=True, user="root",
+                                             download_cache="/opt/scb/rope/venv_cache")
 
 @task
 def deploy(update_requirements=False):
@@ -206,7 +205,7 @@ def deploy(update_requirements=False):
     copy_to_releases()
 
     if update_requirements:
-        install_requirements()
+        virualenv_update_requirements()
 
     symlink_release()
     manage("collectstatic --noinput")
@@ -224,7 +223,8 @@ def mysql_execute(sql, user='', password=''):
 
 @task
 def reset_db():
-    # TODO Add backup
+    mysql_dump()
+
     with settings(mysql_user='root', mysql_password=env.db_root_password):
         if fabtools.mysql.database_exists(env.db_name):
             mysql_execute('DROP DATABASE %s;' % env.db_name, "root", env.db_root_password)
@@ -240,26 +240,23 @@ def mysql_create_db():
         require.mysql.user(env.db_user, env.db_password)
         require.mysql.database(env.db_name, owner=env.db_user)
 
+
+@task
 def mysql_dump():
     """ Runs mysqldump. Result is stored at /srv/active/sql/ """
 
-    dump_dir = '/srv/active/sql/'
-    run('mkdir -p %s' % dump_dir)
-    now = datetime.now().strftime("%Y.%m.%d-%H.%M")
+    if fabtools.mysql.database_exists(env.db_name):
+        dump_dir = '/srv/active/sql/'
+        require.directory(dump_dir, use_sudo=True)
 
-    with settings(mysql_user='root', mysql_password=env.db_root_password):
-        if fabtools.mysql.database_exists(env.db_name):
-            mysql_execute('DROP DATABASE %s;' % env.db_name, "root", env.db_root_password)
+        now = datetime.now().strftime("%Y.%m.%d-%H.%M")
 
-
-    fabric.api.run('mysqldump -u%s -p %s > %s' % (user, database,
-                                                  os.path.join(dump_dir, '%s-%s.sql' % (database, now))))
-
+        sudo('mysqldump -u root -p%s %s > %s' % (env.db_root_password, env.db_name, os.path.join(dump_dir, '%s-%s.sql' % (env.db_name, now))))
 
 
 @task
 def setup():
-    if not exists('%(env_path)s/bin' % env): # this si just to run it only once
+    if not exists('%(env_path)s/bin' % env):  # this si just to run it only once
         sudo("apt-get update")
         if env.settings != "vagrant":
             sudo("apt-get upgrade -y")
@@ -281,14 +278,9 @@ def setup():
     require.mysql.server(password=env.db_root_password)
 
     setup_virtualenv()
-
-    with fabtools.python.virtualenv('%(env_path)s' % env):
-        require.python.package('distribute')
-        fabtools.require.python.requirements('%(pip_req_file)s' % env, use_sudo=True, user="root",
-                                             download_cache="/opt/r3/django/venv_cache")
+    virualenv_update_requirements()
 
 
-    # TODO Do we need this simple webserver?
     CONFIG_TPL = '''
     server {
         listen      %(port)d;
