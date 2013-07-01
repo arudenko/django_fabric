@@ -231,7 +231,7 @@ def reset_db():
 
     mysql_create_db()
     manage("syncdb --noinput --no-initial-data")
-    manage("loaddata initial_data.json --ignorenonexistent")
+    manage("loaddata test.json --ignorenonexistent")
     pass
 
 
@@ -244,9 +244,8 @@ def mysql_dump():
     """ Runs mysqldump. Result is stored at /srv/active/sql/ """
 
     dump_dir = '/srv/active/sql/'
-    fabric.api.run('mkdir -p %s' % dump_dir)
+    run('mkdir -p %s' % dump_dir)
     now = datetime.now().strftime("%Y.%m.%d-%H.%M")
-
 
     with settings(mysql_user='root', mysql_password=env.db_root_password):
         if fabtools.mysql.database_exists(env.db_name):

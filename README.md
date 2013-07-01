@@ -21,4 +21,6 @@ django_fabric
 	Project has simple [Vagrant](http://www.vagrantup.com) file to test local instances. To spead up development it maps host folders to cache apt and virtualenv files. 
 
 4. To run
-	1. 
+	1. Access Test Data:
+	    - login: root
+	    - password: 123

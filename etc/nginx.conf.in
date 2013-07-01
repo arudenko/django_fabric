@@ -72,7 +72,7 @@ http {
         location /static/ {
             root %(curr_path)s;
             allow all;
-            autoindex on;
+            autoindex off;
         }
 
         location ~* \.(less|ico|css|js|gif|jpe?g|png)(\?[0-9]+)?$ {
@@ -88,7 +88,7 @@ http {
         location /media/ {
             root %(curr_path)s;
             allow all;
-            autoindex on;
+            autoindex off;
         }
 
         location / {
