@@ -45,7 +45,7 @@ http {
         gzip_types text/plain text/css application/x-javascript text/xml application/xml application/xml+rss text/javascript;
         gzip_disable "MSIE [1-6].(?!.*SV1)";
         
-        root %(curr_path)s/TtsServer;
+        root %(curr_path)s;
 
         location = /robots.txt  { access_log off; log_not_found off; }
         location = /favicon.ico { access_log off; log_not_found off; }
@@ -70,7 +70,7 @@ http {
         }
 
         location /static/ {
-            root %(curr_path)s/TtsServer;
+            root %(curr_path)s;
             allow all;
             autoindex on;
         }

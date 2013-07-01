@@ -72,7 +72,7 @@ def upload_local_folder():
         sudo("tar xf release-bundle.tgz")
 
     put(env.root + "requirements.txt", env.repo_path, use_sudo=True)
-
+    require.directory('%(repo_path)s/static' % env, owner="www-data", use_sudo=True)
 
 def configure_app():
     context = {
@@ -84,8 +84,6 @@ def configure_app():
     upload_template("etc/local_settings.py.in",
                     '/var/www/apps/%(project_name)s/repo/django_fabric/local_settings.py' % env,
                     context=context, use_sudo=True)
-
-    pass
 
 
 def symlink_release():
@@ -99,6 +97,7 @@ def symlink_release():
           curr_tmp,
           curr_tmp,
           '%(curr_path)s' % env))
+
 
 
 def get_sorted_releases():
@@ -210,6 +209,9 @@ def deploy(update_requirements=False):
         install_requirements()
 
     symlink_release()
+    manage("collectstatic --noinput")
+    sudo("sudo chown -R www-data /var/www/apps/%(django_project_dir)s/current/static/" % env)
+
     app('restart')
 
 
@@ -229,8 +231,7 @@ def reset_db():
 
     mysql_create_db()
     manage("syncdb --noinput --no-initial-data")
-    manage("loaddata tts_initial_data.json --ignorenonexistent")
-    manage("collectstatic --noinput")
+    manage("loaddata initial_data.json --ignorenonexistent")
     pass
 
 
@@ -286,7 +287,6 @@ def setup():
         require.python.package('distribute')
         fabtools.require.python.requirements('%(pip_req_file)s' % env, use_sudo=True, user="root",
                                              download_cache="/opt/r3/django/venv_cache")
-        pass
 
 
     # TODO Do we need this simple webserver?
